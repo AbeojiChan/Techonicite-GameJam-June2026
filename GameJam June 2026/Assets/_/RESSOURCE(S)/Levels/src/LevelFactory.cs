@@ -121,11 +121,11 @@ namespace Levels.Editor
 
         #region Public API
 
-        [MenuItem("Tools/" + nameof(LevelFactory))]
+        [MenuItem("Tools/Create Level")]
         public static void ShowWindow()
         {
             LevelFactory window = GetWindow<LevelFactory>();
-            window.titleContent = new GUIContent(nameof(LevelFactory));
+            window.titleContent = new GUIContent("Create Level");
         }
 
         #endregion
@@ -135,7 +135,22 @@ namespace Levels.Editor
 
         private void OnCreate()
         {
-            // --- Validation ─────────────────────────────────────────────
+            // --- Handle untitled scenes -----
+            for (int i = 0; i < EditorSceneManager.sceneCount; i++)
+            {
+                var scene = EditorSceneManager.GetSceneAt(i);
+                if (string.IsNullOrEmpty(scene.path))
+                {
+                    EditorUtility.DisplayDialog(
+                        "Level Factory",
+                        "Please save or close all untitled scenes before creating a level.",
+                        "OK"
+                    );
+                    return;
+                }
+            }
+
+            // --- Validation -----
             string trimmedBase = _basePath.Trim('/').Trim('\\');
             string trimmedName = _levelName.Trim();
 
@@ -143,6 +158,37 @@ namespace Levels.Editor
             {
                 EditorUtility.DisplayDialog("Level Factory", "Please enter a level name.", "OK");
                 return;
+            }
+
+            if (!IsValidFileName(trimmedName))
+            {
+                EditorUtility.DisplayDialog("Level Factory", $"Level name '{trimmedName}' contains invalid characters.", "OK");
+                return;
+            }
+
+            foreach (string sceneName in _sceneNames)
+            {
+                if (string.IsNullOrEmpty(sceneName))
+                {
+                    EditorUtility.DisplayDialog("Level Factory", "Please enter a scene name.", "OK");
+                    return;
+                }
+
+                if (!IsValidFileName(sceneName))
+                {
+                    EditorUtility.DisplayDialog("Level Factory", $"Scene name '{sceneName}' contains invalid characters.", "OK");
+                    return;
+                }
+            }
+
+            var sceneNamesSet = new HashSet<string>();
+            foreach (string sceneName in _sceneNames)
+            {
+                if (!sceneNamesSet.Add(sceneName))
+                {
+                    EditorUtility.DisplayDialog("Level Factory", $"Duplicate scene name '{sceneName}'. All scene names must be unique.", "OK");
+                    return;
+                }
             }
 
             if (_sceneNames.Count == 0)
@@ -164,7 +210,7 @@ namespace Levels.Editor
 
             foreach (string sceneName in _sceneNames)
             {
-                string sceneAssetPath = $"{scenesFolderPath}/{sceneName}.unity";
+                string sceneAssetPath = $"{scenesFolderPath}/{trimmedName}_{sceneName}.unity";
 
                 if (!File.Exists(Path.Combine(Application.dataPath, "../", sceneAssetPath)))
                 {
@@ -174,8 +220,7 @@ namespace Levels.Editor
                 }
 
                 SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(sceneAssetPath);
-                if (sceneAsset != null)
-                    createdSceneAssets.Add(sceneAsset);
+                if (sceneAsset != null) createdSceneAssets.Add(sceneAsset);
             }
 
             // --- Add scenes to Build Settings -----
@@ -287,8 +332,23 @@ namespace Levels.Editor
                     RefreshPreview();
                 });
 
+                var removeBtn = new Button(() =>
+                {
+                    if (_sceneNames.Count > 1)
+                    {
+                        _sceneNames.RemoveAt(index);
+                        RefreshSceneList();
+                        SavePrefs();
+                        RefreshPreview();
+                    }
+                })
+                { text = "✕" };
+                removeBtn.style.width = 24;
+                removeBtn.style.marginLeft = 2;
+
                 row.Add(indexLabel);
                 row.Add(field);
+                row.Add(removeBtn);
                 _sceneListScrollView.Add(row);
             }
         }
@@ -305,7 +365,7 @@ namespace Levels.Editor
             sb.AppendLine($"{root}{trimmedName}.asset");
             sb.AppendLine($"{root}Scenes/");
             foreach (var s in _sceneNames)
-                sb.AppendLine($"    {s}.unity");
+                sb.AppendLine($"    {trimmedName}_{s}.unity");
 
             _previewLabel.text = sb.ToString().TrimEnd();
         }
@@ -331,6 +391,13 @@ namespace Levels.Editor
             EditorPrefs.SetString(PREF_BASE_PATH, _basePath);
             EditorPrefs.SetString(PREF_LEVEL_NAME, _levelName);
             EditorPrefs.SetString(PREF_SCENE_NAMES, string.Join(";", _sceneNames));
+        }
+
+        private static bool IsValidFileName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+
+            return System.Text.RegularExpressions.Regex.IsMatch(name, @"^[a-zA-Z0-9_\-]+$");
         }
 
         #endregion
