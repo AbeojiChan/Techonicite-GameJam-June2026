@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Levels.Runtime.LevelData
   m_scenes:
   - m_sceneAsset: {fileID: 102900000, guid: af62c622a05423f4fb9b790926731e91, type: 3}
+  - m_sceneAsset: {fileID: 102900000, guid: c6cfac5ae5812214d959b5be46888c9c, type: 3}
