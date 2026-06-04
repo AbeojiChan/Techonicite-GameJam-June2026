@@ -12,8 +12,8 @@ namespace Levels.Runtime
         public SceneAsset m_sceneAsset;
 #endif
 
-        public string ScenePath => _scenePath;
-        public string SceneName => _sceneName;
+        public string ScenePath => m_scenePath;
+        public string SceneName => m_sceneName;
 
         #endregion
 
@@ -23,8 +23,8 @@ namespace Levels.Runtime
         public void Sync()
         {
 #if UNITY_EDITOR
-            _scenePath = m_sceneAsset ? AssetDatabase.GetAssetPath(m_sceneAsset) : string.Empty;
-            _sceneName = m_sceneAsset ? m_sceneAsset.name : string.Empty;
+            m_scenePath = m_sceneAsset ? AssetDatabase.GetAssetPath(m_sceneAsset) : string.Empty;
+            m_sceneName = m_sceneAsset ? m_sceneAsset.name : string.Empty;
 #endif
         }
 
@@ -33,8 +33,8 @@ namespace Levels.Runtime
 
         #region Private and Protected
 
-        private string _scenePath;
-        private string _sceneName;
+        public string m_scenePath;
+        public string m_sceneName;
 
         #endregion
     }

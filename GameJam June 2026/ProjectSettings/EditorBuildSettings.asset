@@ -29,6 +29,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_/DATABASE/Level(s)/BonusLevelScreen/Scenes/BonusLevelScreen_BonusLevel.unity
     guid: a5ad5febae1783342bdf1d56ded7088e
+  - enabled: 1
+    path: Assets/_/DATABASE/Level(s)/TitleScreen/Scenes/OptionScreen.unity
+    guid: c6cfac5ae5812214d959b5be46888c9c
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
